@@ -7,7 +7,7 @@ function App() {
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
  
-  const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app/api"; 
+  const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app"; 
 
   const [view, setView] = useState('site');
   const [tracksData, setTracksData] = useState([]);
@@ -143,7 +143,7 @@ function App() {
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
-  // تسجيل الدخول
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
