@@ -197,13 +197,34 @@ function App() {
     .catch(() => alert('حدثت مشكلة أثناء الحذف'));
   };
 
-  // تعديل ذكي: إرسال الـ url للباكيند ليقوم بقصه وحفظه بشكل سليم ومضمون
+  
+  
   const handleAddVideo = (e) => {
     e.preventDefault();
+
+    let finalUrl = newVideoId.trim();
+
+   
+    if (finalUrl.length === 11 && !finalUrl.includes('/') && !finalUrl.includes('.')) {
+      finalUrl = `https://www.youtube.com/watch?v=${finalUrl}`;
+    }
+   
+    else if (finalUrl.includes('youtu.be/')) {
+      
+      const id = finalUrl.split('youtu.be/')[1].split('?')[0];
+      finalUrl = `https://www.youtube.com/watch?v=${id}`;
+    }
+    
+    else if (finalUrl.includes('watch?v=')) {
+      const id = finalUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
+      finalUrl = `https://www.youtube.com/watch?v=${id}`;
+    }
+
+    
     fetch(`${API_BASE_URL}/api/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newVideoTitle, url: newVideoId }) 
+      body: JSON.stringify({ title: newVideoTitle, url: finalUrl }) 
     })
     .then(res => {
       if (!res.ok) throw new Error();
@@ -215,7 +236,7 @@ function App() {
       setNewVideoId('');
       alert('تم حفظ الفيديو بنجاح!');
     })
-    .catch(() => alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح. تأكد من إدخال رابط يوتيوب كامل أو كود صحيح.'));
+    .catch(() => alert('السيرفر رفض الحفظ، تأكد من البيانات المعطاة.'));
   };
 
   const handleDeleteVideo = (id) => {
