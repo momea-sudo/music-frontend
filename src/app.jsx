@@ -6,7 +6,7 @@ function App() {
   const YOUTUBE_URL = "https://www.youtube.com/@mohamedbiko11";
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
-  // توحيد الرابط الأساسي مع البورت 5000 ومسار الـ api
+ 
   const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app/api"; 
 
   const [view, setView] = useState('site');
@@ -31,7 +31,7 @@ function App() {
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // جلب البيانات عند فتح الموقع
+  
   useEffect(() => {
     if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
       setView('login');
@@ -158,7 +158,7 @@ function App() {
         localStorage.setItem('adminToken', data.token);
         setView('admin');
         
-        // جلب الفيديوهات والتراكات فوراً للـ Admin بعد تسجيل الدخول بنجاح لتظهر في القائمة
+        
         fetch(`${API_BASE_URL}/tracks`).then(res=>res.json()).then(d => setTracksData(d));
         fetch(`${API_BASE_URL}/videos`).then(res=>res.json()).then(d => setVideosData(d));
       } else {
@@ -169,7 +169,7 @@ function App() {
     }
   };
 
-  // إضافة تراك صوتي
+  
   const handleAddTrack = (e) => {
     e.preventDefault();
     if (!newTrackTitle || !newTrackUrl) return alert('املا البيانات');
@@ -194,7 +194,7 @@ function App() {
     .catch(() => alert('حدث خطأ أثناء حفظ التراك'));
   };
 
-  // حذف تراك
+  
   const handleDeleteTrack = (id) => {
     if (!confirm("عايز تمسح التراك ده؟")) return;
     fetch(`${API_BASE_URL}/tracks/${id}`, { method: 'DELETE' })
@@ -207,7 +207,7 @@ function App() {
     .catch(() => alert('حدثت مشكلة أثناء الحذف'));
   };
 
-  // إضافة فيديو يوتيوب (إصلاح مشكلة الاختفاء)
+  
   const handleAddVideo = (e) => {
     e.preventDefault();
     if (!newVideoTitle || !newVideoId) return alert('املا البيانات');
@@ -225,7 +225,7 @@ function App() {
     .then(res => res.json())
     .then(savedVideo => {
       if (savedVideo._id) {
-        // تحديث الـ state فوراً بالفيديو الجديد المرتجع من قاعدة البيانات لمنع اختفائه
+        
         setVideosData([...videosData, savedVideo]);
         setNewVideoTitle('');
         setNewVideoId('');
@@ -237,7 +237,7 @@ function App() {
     .catch(() => alert('فشل إضافة الفيديو، تأكد من تشغيل السيرفر'));
   };
 
-  // حذف فيديو
+ 
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
     fetch(`${API_BASE_URL}/videos/${id}`, { method: 'DELETE' })
