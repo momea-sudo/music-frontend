@@ -167,7 +167,7 @@ function App() {
 
   const handleAddTrack = (e) => {
     e.preventDefault();
-    fetch(`${API_BASE_URL}/api/tracks`, {
+    fetch(`${API_BASE_URL}/tracks`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
@@ -204,27 +204,24 @@ function App() {
 
     let finalUrl = newVideoId.trim();
 
-   
+    
     if (finalUrl.length === 11 && !finalUrl.includes('/') && !finalUrl.includes('.')) {
       finalUrl = `https://www.youtube.com/watch?v=${finalUrl}`;
     }
-   
     else if (finalUrl.includes('youtu.be/')) {
-      
       const id = finalUrl.split('youtu.be/')[1].split('?')[0];
       finalUrl = `https://www.youtube.com/watch?v=${id}`;
     }
-    
     else if (finalUrl.includes('watch?v=')) {
       const id = finalUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
       finalUrl = `https://www.youtube.com/watch?v=${id}`;
     }
 
-    
-    fetch(`${API_BASE_URL}/api/videos`, {
+  
+    fetch(`${API_BASE_URL}/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newVideoTitle, url: finalUrl }) 
+      body: JSON.stringify({ title: newVideoTitle, videoId: finalUrl }) 
     })
     .then(res => {
       if (!res.ok) throw new Error();
@@ -236,7 +233,7 @@ function App() {
       setNewVideoId('');
       alert('تم حفظ الفيديو بنجاح!');
     })
-    .catch(() => alert('السيرفر رفض الحفظ، تأكد من البيانات المعطاة.'));
+    .catch(() => alert('السيرفر رفض الحفظ، تأكد من البيانات.'));
   };
 
   const handleDeleteVideo = (id) => {
