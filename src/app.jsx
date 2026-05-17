@@ -201,27 +201,33 @@ function App() {
   
   const handleAddVideo = (e) => {
     e.preventDefault();
-
-    let finalUrl = newVideoId.trim();
-
     
-    if (finalUrl.length === 11 && !finalUrl.includes('/') && !finalUrl.includes('.')) {
-      finalUrl = `https://www.youtube.com/watch?v=${finalUrl}`;
+    let rawUrl = newVideoId.trim();
+    let extractedId = rawUrl;
+
+    // 1. لو كاتب رابط كامل فيه watch?v=
+    if (rawUrl.includes('watch?v=')) {
+      extractedId = rawUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
+    } 
+    // 2. لو كاتب رابط قصير بتاع الموبايل youtu.be/
+    else if (rawUrl.includes('youtu.be/')) {
+      extractedId = rawUrl.split('youtu.be/')[1].split('?')[0];
     }
-    else if (finalUrl.includes('youtu.be/')) {
-      const id = finalUrl.split('youtu.be/')[1].split('?')[0];
-      finalUrl = `https://www.youtube.com/watch?v=${id}`;
-    }
-    else if (finalUrl.includes('watch?v=')) {
-      const id = finalUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
-      finalUrl = `https://www.youtube.com/watch?v=${id}`;
+    // 3. لو كاتب رابط embed
+    else if (rawUrl.includes('embed/')) {
+      extractedId = rawUrl.split('embed/')[1].split('?')[0];
     }
 
-  
-    fetch(`${API_BASE_URL}/videos`, {
+    // الحركة الصايعة: بنصنع الرابط الكلاسيكي النظيف اللي الباكيند بيموت فيه
+    const cleanYoutubeUrl = `https://www.youtube.com/watch?v=${extractedId}`;
+
+    fetch(`${API_BASE_URL}/api/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newVideoTitle, videoId: finalUrl }) 
+      body: JSON.stringify({ 
+        title: newVideoTitle, 
+        videoId: cleanYoutubeUrl // بنبعت الرابط الكلاسيكي النظيف عشان الـ Regex يشتغل صح
+      }) 
     })
     .then(res => {
       if (!res.ok) throw new Error();
@@ -231,9 +237,9 @@ function App() {
       setVideosData([...videosData, data]); 
       setNewVideoTitle('');
       setNewVideoId('');
-      alert('تم حفظ الفيديو بنجاح!');
+      alert('تم حفظ الفيديو بنجاح! 🎉');
     })
-    .catch(() => alert('السيرفر رفض الحفظ، تأكد من البيانات.'));
+    .catch(() => alert('السيرفر رفض الحفظ، تأكد من أن الرابط صحيح.'));
   };
 
   const handleDeleteVideo = (id) => {
