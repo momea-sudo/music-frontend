@@ -6,7 +6,6 @@ function App() {
   const YOUTUBE_URL = "https://www.youtube.com/@mohamedbiko11";
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
-  // عنوان الباكيند على جوجل كلاود
   const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app"; 
 
   const [view, setView] = useState('site');
@@ -31,7 +30,6 @@ function App() {
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // 1️⃣ تحديث جلب التراكات والفيديوهات بـ /api/ المظبوطة
   useEffect(() => {
     if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
       setView('login');
@@ -143,7 +141,6 @@ function App() {
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
-  // 2️⃣ تحديث تسجيل دخول الأدمن بـ /api/
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
@@ -168,7 +165,6 @@ function App() {
     }
   };
 
-  // 3️⃣ تحديث إضافة التراك بـ /api/
   const handleAddTrack = (e) => {
     e.preventDefault();
     fetch(`${API_BASE_URL}/api/tracks`, {
@@ -189,7 +185,6 @@ function App() {
     .catch(() => alert('السيرفر لم يقم بحفظ التراك بشكل صحيح'));
   };
   
-  // 4️⃣ تحديث حذف التراك بـ /api/
   const handleDeleteTrack = (id) => {
     if (!confirm("عايز تمسح التراك ده؟")) return;
     fetch(`${API_BASE_URL}/api/tracks/${id}`, { method: 'DELETE' })
@@ -202,13 +197,13 @@ function App() {
     .catch(() => alert('حدثت مشكلة أثناء الحذف'));
   };
 
-  // 5️⃣ تحديث إضافة الفيديو بـ /api/
+  // تعديل ذكي: إرسال الـ url للباكيند ليقوم بقصه وحفظه بشكل سليم ومضمون
   const handleAddVideo = (e) => {
     e.preventDefault();
     fetch(`${API_BASE_URL}/api/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newVideoTitle, videoId: newVideoId })
+      body: JSON.stringify({ title: newVideoTitle, url: newVideoId }) 
     })
     .then(res => {
       if (!res.ok) throw new Error();
@@ -220,10 +215,9 @@ function App() {
       setNewVideoId('');
       alert('تم حفظ الفيديو بنجاح!');
     })
-    .catch(() => alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح'));
+    .catch(() => alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح. تأكد من إدخال رابط يوتيوب كامل أو كود صحيح.'));
   };
 
-  // 6️⃣ تحديث حذف الفيديو بـ /api/
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
     fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
@@ -236,7 +230,6 @@ function App() {
     .catch(() => alert('حدثت مشكلة أثناء الحذف'));
   };
 
-  // حماية ذكية لقراءة الـ ID الخاص باليوتيوب أياً كان مسماه في الداتابيز لتفادي الصورة السوداء
   const getYoutubeId = (video) => {
     return video.youtubeId || video.videoId || "";
   };
@@ -290,7 +283,7 @@ function App() {
             <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', color: '#00ffcc' }}>🎬 إدارة كليبات اليوتيوب</h2>
             <form onSubmit={handleAddVideo} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
               <input type="text" placeholder="عنوان الكليب الجديد" value={newVideoTitle} onChange={e => setNewVideoTitle(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
-              <input type="text" placeholder="كود الفيديو (ID) من يوتيوب" value={newVideoId} onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
+              <input type="text" placeholder="رابط فيديو اليوتيوب الكامل" value={newVideoId} onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <button type="submit" className="btn-filled" style={{ width: '100%', background: '#7000ff', color: '#fff' }}>+ إضافة الفيديو للموقع</button>
             </form>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
