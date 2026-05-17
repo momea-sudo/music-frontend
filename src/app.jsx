@@ -170,30 +170,25 @@ function App() {
   };
 
   
-  const handleAddTrack = (e) => {
-    e.preventDefault();
-    if (!newTrackTitle || !newTrackUrl) return alert('املا البيانات');
-
-    fetch(`${API_BASE_URL}/tracks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
-    })
-    .then(res => res.json())
-    .then(savedTrack => {
-      if (savedTrack._id) {
-        setTracksData([...tracksData, savedTrack]);
-        if (!currentTrack) setCurrentTrack(savedTrack);
-        setNewTrackTitle('');
-        setNewTrackUrl('');
-        alert('تم إضافة التراك بنجاح!');
-      } else {
-        alert('فشل إضافة التراك من السيرفر');
-      }
-    })
-    .catch(() => alert('حدث خطأ أثناء حفظ التراك'));
-  };
-
+ const handleAddTrack = (e) => {
+  e.preventDefault();
+  fetch(`${API_BASE_URL}/tracks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+    return res.json();
+  })
+  .then(data => {
+    setTracksData([...tracksData, data]); 
+    setNewTrackTitle('');
+    setNewTrackUrl('');
+    alert('تم حفظ التراك بنجاح!');
+  })
+  .catch(() => alert('السيرفر لم يقم بحفظ التراك بشكل صحيح'));
+};
   
   const handleDeleteTrack = (id) => {
     if (!confirm("عايز تمسح التراك ده؟")) return;
@@ -209,33 +204,24 @@ function App() {
 
   
   const handleAddVideo = (e) => {
-    e.preventDefault();
-    if (!newVideoTitle || !newVideoId) return alert('املا البيانات');
-
-    let cleanId = newVideoId.trim();
-    if (cleanId.includes('v=')) cleanId = cleanId.split('v=')[1].split('&')[0];
-    else if (cleanId.includes('youtu.be/')) cleanId = cleanId.split('youtu.be/')[1].split('?')[0];
-    else if (cleanId.includes('&')) cleanId = cleanId.split('&')[0];
-
-    fetch(`${API_BASE_URL}/videos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newVideoTitle, youtubeId: cleanId })
-    })
-    .then(res => res.json())
-    .then(savedVideo => {
-      if (savedVideo._id) {
-        
-        setVideosData([...videosData, savedVideo]);
-        setNewVideoTitle('');
-        setNewVideoId('');
-        alert('تم إضافة الفيديو بنجاح وظهر في الموقع!');
-      } else {
-        alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح');
-      }
-    })
-    .catch(() => alert('فشل إضافة الفيديو، تأكد من تشغيل السيرفر'));
-  };
+  e.preventDefault();
+  fetch(`${API_BASE_URL}/videos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: newVideoTitle, videoId: newVideoId })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+    return res.json();
+  })
+  .then(data => {
+    setVideosData([...videosData, data]); 
+    setNewVideoTitle('');
+    setNewVideoId('');
+    alert('تم حفظ الفيديو بنجاح!');
+  })
+  .catch(() => alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح'));
+};
 
  
   const handleDeleteVideo = (id) => {
