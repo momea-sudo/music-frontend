@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import bikoImg from './assets/biko.jpg'; 
 
 function App() {
-
   const YOUTUBE_URL = "https://www.youtube.com/@mohamedbiko11";
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
@@ -28,212 +27,99 @@ function App() {
   const [newVideoId, setNewVideoId] = useState('');
 
   const audioRef = useRef(null);
-  const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  
-  useEffect(() => {
-    if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
-      setView('login');
-    } else {
-      fetch(`${API_BASE_URL}/tracks`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setTracksData(data);
-            if (data.length > 0) setCurrentTrack(data[0]);
-          }
-        })
-        .catch(err => console.error("Error tracks:", err));
-
-      fetch(`${API_BASE_URL}/videos`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setVideosData(data);
-        })
-        .catch(err => console.error("Error videos:", err));
-    }
-  }, []); 
-
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
-      if (token) {
-        setView('admin'); 
-      } else {
-        setView('login'); 
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const moveCursor = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
-    const handleMouseOver = (e) => {
-      if (!e.target) return;
-      try {
-        const targetElement = e.target;
-        if (targetElement.tagName === 'BUTTON' || targetElement.tagName === 'A' || (targetElement.closest && (targetElement.closest('.track-card-horizontal') || targetElement.closest('.video-card') || targetElement.closest('.hero-social-icon')))) {
-          setIsHovered(true);
-        } else {
-          setIsHovered(false);
-        }
-      } catch (err) { setIsHovered(false); }
-    };
-    window.addEventListener('mousemove', moveCursor);
-    window.addEventListener('mouseover', handleMouseOver);
-    return () => {
-      window.removeEventListener('mousemove', moveCursor);
-      window.removeEventListener('mouseover', handleMouseOver);
-    };
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) entry.target.classList.add('revealed');
-        else entry.target.classList.remove('revealed');
-      });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.scroll-reveal').forEach((el) => observer.observe(el));
-    return () => document.querySelectorAll('.scroll-reveal').forEach((el) => observer.unobserve(el));
-  }, [view, tracksData, videosData]);
-
-  useEffect(() => {
-    if (!currentTrack) return;
-    if (!audioRef.current) audioRef.current = new Audio(currentTrack.url);
-    else audioRef.current.src = currentTrack.url;
-
-    const audio = audioRef.current;
-    const setAudioData = () => setDuration(audio.duration);
-    const setAudioTime = () => setCurrentTime(audio.currentTime);
-
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-
-    if (isPlaying) audio.play().catch(err => console.log(err));
-
-    return () => {
-      audio.pause();
-      audio.removeEventListener('loadeddata', setAudioData);
-      audio.removeEventListener('timeupdate', setAudioTime);
-    };
-  }, [currentTrack]);
-
-  const togglePlay = () => {
-    if (!currentTrack) return;
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(err => console.log(err));
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleProgressClick = (e) => {
-    if (!duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newTime = ((e.clientX - rect.left) / rect.width) * duration;
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
-  const formatTime = (time) => {
-    if (isNaN(time)) return "00:00";
-    const mins = Math.floor(time / 60);
-    const secs = Math.floor(time % 60);
-    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
-  const progressPercent = duration ? (currentTime / duration) * 100 : 0;
-
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput, password: passwordInput })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        localStorage.setItem('adminToken', data.token);
-        setView('admin');
-        
-        
-        fetch(`${API_BASE_URL}/tracks`).then(res=>res.json()).then(d => setTracksData(d));
-        fetch(`${API_BASE_URL}/videos`).then(res=>res.json()).then(d => setVideosData(d));
-      } else {
-        setLoginError(data.message || 'البيانات غير صحيحة');
-      }
-    } catch (err) {
-      alert('فشل الاتصال بالباكيند، تأكد أنه يعمل على بورت 5000');
-    }
-  };
-
-  
- const handleAddTrack = (e) => {
-  e.preventDefault();
-  fetch(`${API_BASE_URL}/tracks`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
-  })
-  .then(res => {
-    if (!res.ok) throw new Error();
-    return res.json();
-  })
-  .then(data => {
-    setTracksData([...tracksData, data]); 
-    setNewTrackTitle('');
-    setNewTrackUrl('');
-    alert('تم حفظ التراك بنجاح!');
-  })
-  .catch(() => alert('السيرفر لم يقم بحفظ التراك بشكل صحيح'));
-};
-  
-  const handleDeleteTrack = (id) => {
-    if (!confirm("عايز تمسح التراك ده؟")) return;
-    fetch(`${API_BASE_URL}/tracks/${id}`, { method: 'DELETE' })
-    .then(res => {
-      if (res.ok) {
-        setTracksData(tracksData.filter(t => t._id !== id));
-        alert('تم مسح التراك!');
-      }
-    })
-    .catch(() => alert('حدثت مشكلة أثناء الحذف'));
-  };
-
-  
-  const handleAddVideo = (e) => {
-  e.preventDefault();
-  fetch(`${API_BASE_URL}/videos`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: newVideoTitle, videoId: newVideoId })
-  })
-  .then(res => {
-    if (!res.ok) throw new Error();
-    return res.json();
-  })
-  .then(data => {
-    setVideosData([...videosData, data]); 
-    setNewVideoTitle('');
-    setNewVideoId('');
-    alert('تم حفظ الفيديو بنجاح!');
-  })
-  .catch(() => alert('السيرفر لم يقم بحفظ الفيديو بشكل صحيح'));
-};
 
  
-  const handleDeleteVideo = (id) => {
-    if (!confirm("عايز تمسح الفيديو ده؟")) return;
-    fetch(`${API_BASE_URL}/videos/${id}`, { method: 'DELETE' })
-    .then(res => {
-      if (res.ok) {
-        setVideosData(videosData.filter(v => v._id !== id));
-        alert('تم مسح الفيديو!');
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/tracks`)
+      .then(res => res.json())
+      .then(data => setTracksData(data))
+      .catch(err => console.error(err));
+
+    fetch(`${API_BASE_URL}/api/videos`)
+      .then(res => res.json())
+      .then(data => setVideosData(data))
+      .catch(err => console.error(err));
+  }, []);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    fetch(`${API_BASE_URL}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: emailInput, password: passwordInput })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        setView('admin');
+        setLoginError('');
+      } else {
+        setLoginError(data.message || 'خطأ في البيانات');
       }
     })
-    .catch(() => alert('حدثت مشكلة أثناء الحذف'));
+    .catch(() => setLoginError('فشل الاتصال بالسيرفر'));
+  };
+
+  const handleAddTrack = (e) => {
+    e.preventDefault();
+    fetch(`${API_BASE_URL}/api/tracks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.json();
+    })
+    .then(data => {
+      setTracksData([...tracksData, data]);
+      setNewTrackTitle('');
+      setNewTrackUrl('');
+      alert('تم إضافة التراك بنجاح!');
+    })
+    .catch(() => alert('حدث خطأ أثناء إضافة التراك'));
+  };
+
+  const handleAddVideo = (e) => {
+    e.preventDefault();
+    fetch(`${API_BASE_URL}/api/videos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newVideoTitle, videoId: newVideoId })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.json();
+    })
+    .then(data => {
+      setVideosData([...videosData, data]);
+      setNewVideoTitle('');
+      setNewVideoId('');
+      alert('تم إضافة الفيديو بنجاح!');
+    })
+    .catch(() => alert('حدث خطأ أثناء إضافة الفيديو'));
+  };
+
+  const handleDeleteTrack = (id) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا التراك؟')) return;
+    fetch(`${API_BASE_URL}/api/tracks/${id}`, { method: 'DELETE' })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        setTracksData(tracksData.filter(t => t._id !== id));
+        alert('تم الحذف بنجاح');
+      })
+      .catch(() => alert('فشل الحذف'));
+  };
+
+  const handleDeleteVideo = (id) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا الفيديو؟')) return;
+    fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        setVideosData(videosData.filter(v => v._id !== id));
+        alert('تم الحذف بنجاح');
+      })
+      .catch(() => alert('فشل الحذف'));
   };
 
   if (view === 'login') {
