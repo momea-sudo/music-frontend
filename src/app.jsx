@@ -7,7 +7,7 @@ function App() {
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
   // توحيد الرابط الأساسي مع البورت 5000 ومسار الـ api
-  const API_BASE_URL = "http://localhost:5000/api"; 
+  const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app/api"; 
 
   const [view, setView] = useState('site');
   const [tracksData, setTracksData] = useState([]);
