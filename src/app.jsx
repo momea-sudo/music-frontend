@@ -205,20 +205,14 @@ function App() {
     let rawUrl = newVideoId.trim();
     let extractedId = rawUrl;
 
-    
     if (rawUrl.includes('watch?v=')) {
       extractedId = rawUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
-    } 
-    
-    else if (rawUrl.includes('youtu.be/')) {
+    } else if (rawUrl.includes('youtu.be/')) {
       extractedId = rawUrl.split('youtu.be/')[1].split('?')[0];
-    }
-    
-    else if (rawUrl.includes('embed/')) {
+    } else if (rawUrl.includes('embed/')) {
       extractedId = rawUrl.split('embed/')[1].split('?')[0];
     }
 
-    
     const cleanYoutubeUrl = `https://www.youtube.com/watch?v=${extractedId}`;
 
     fetch(`${API_BASE_URL}/api/videos`, {
@@ -238,18 +232,25 @@ function App() {
     })
     .then(data => {
       
-      if (data && (data.youtubeId || data.videoId)) {
+      if (data && data.title) {
         setVideosData(prevVideos => [...prevVideos, data]);
+        alert('تم حفظ الفيديو بنجاح! 🎉');
+      } else {
+        
+        fetch(`${API_BASE_URL}/api/videos`)
+          .then(res => res.json())
+          .then(refreshData => setVideosData(refreshData));
+        alert('تم الحفظ، وجاري تحديث القائمة تلقائياً! 🔄');
       }
       
       setNewVideoTitle('');
       setNewVideoId('');
-      alert('تم حفظ الفيديو بنجاح في قاعدة البيانات! 🎉');
     })
     .catch((err) => {
       alert(`سبب الرفض: ${err.message}`);
     });
-    
+  };
+
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
     fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
