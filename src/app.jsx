@@ -1,12 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
 import bikoImg from './assets/biko.jpg'; 
 
-function App() {
 
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  addDoc, 
+  deleteDoc, 
+  doc 
+} from 'firebase/firestore';
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA6KUiDaFmZeSsA1tXNtXRKVTRHZYvzFqk",
+  authDomain: "biko-official.firebaseapp.com",
+  projectId: "biko-official",
+  storageBucket: "biko-official.firebasestorage.app",
+  messagingSenderId: "848100614076",
+  appId: "1:848100614076:web:27e29517974d7c480515b9",
+  measurementId: "G-9RSB9Q648L"
+};
+
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+function App() {
   const YOUTUBE_URL = "https://www.youtube.com/@mohamedbiko11";
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
-  
-  const API_BASE_URL = "https://bikobackend-154277842591.europe-west1.run.app"; 
 
   const [view, setView] = useState('site');
   const [tracksData, setTracksData] = useState([]);
@@ -30,35 +53,31 @@ function App() {
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
 
- 
+
+  const loadDataFromFirestore = async () => {
+    try {
+      
+      const tracksSnapshot = await getDocs(collection(db, 'tracks'));
+      const tracksList = tracksSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+      setTracksData(tracksList);
+      if (tracksList.length > 0 && !currentTrack) {
+        setCurrentTrack(tracksList[0]);
+      }
+
+      
+      const videosSnapshot = await getDocs(collection(db, 'videos'));
+      const videosList = videosSnapshot.docs.map(doc => ({ _id: doc.id, ...doc.data() }));
+      setVideosData(videosList);
+    } catch (err) {
+      console.error("خطأ أثناء جلب البيانات من Firebase:", err);
+    }
+  };
+
   useEffect(() => {
     if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
       setView('login');
     } else {
-      fetch(`${API_BASE_URL}/api/tracks`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setTracksData(data);
-            if (data.length > 0) setCurrentTrack(data[0]);
-          }
-        })
-        .catch(err => console.error("Error tracks:", err));
-
-      fetch(`${API_BASE_URL}/api/videos`)
-         .then(res => res.json())
-         .then(data => {
-           if (Array.isArray(data)) {
-             setVideosData(data);
-           } else {
-             console.error("الباكيند رجع خطأ مش مصفوفة فيديوهات:", data);
-             setVideosData([]); 
-          }
-       })
-       .catch(err => {
-         console.error(err);
-         setVideosData([]);
-      });
+      loadDataFromFirestore();
     }
   }, []);
 
@@ -67,6 +86,7 @@ function App() {
     if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
       if (token) {
         setView('admin'); 
+        loadDataFromFirestore();
       } else {
         setView('login'); 
       }
@@ -150,66 +170,58 @@ function App() {
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
-  const handleLogin = async (e) => {
+  
+  const handleLogin = (e) => {
     e.preventDefault();
     setLoginError('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput, password: passwordInput })
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        localStorage.setItem('adminToken', data.token);
-        setView('admin');
-        
-        fetch(`${API_BASE_URL}/api/tracks`).then(res=>res.json()).then(d => setTracksData(d));
-        fetch(`${API_BASE_URL}/api/videos`).then(res=>res.json()).then(d => setVideosData(d));
-      } else {
-        setLoginError(data.message || 'البيانات غير صحيحة');
-      }
-    } catch (err) {
-      alert('فشل الاتصال بالباكيند');
+    
+    
+    const ADMIN_EMAIL = "biko@admin.com";
+    const ADMIN_PASSWORD = "biko_official_2026";
+
+    if (emailInput === ADMIN_EMAIL && passwordInput === ADMIN_PASSWORD) {
+      localStorage.setItem('adminToken', 'biko_secure_token');
+      setView('admin');
+      loadDataFromFirestore();
+    } else {
+      setLoginError('البيانات غير صحيحة، يرجى التأكد من الحساب السرّي');
     }
   };
 
-  const handleAddTrack = (e) => {
+  
+  const handleAddTrack = async (e) => {
     e.preventDefault();
-    fetch(`${API_BASE_URL}/tracks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: newTrackTitle, url: newTrackUrl })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.json();
-    })
-    .then(data => {
-      setTracksData([...tracksData, data]); 
+    if (!newTrackTitle || !newTrackUrl) {
+      return alert('اسم التراك ورابط الـ MP3 مطلوبين');
+    }
+
+    try {
+      const trackData = { title: newTrackTitle, url: newTrackUrl };
+      const docRef = await addDoc(collection(db, 'tracks'), trackData);
+      
+      setTracksData([...tracksData, { _id: docRef.id, ...trackData }]); 
       setNewTrackTitle('');
       setNewTrackUrl('');
-      alert('تم حفظ التراك بنجاح!');
-    })
-    .catch(() => alert('السيرفر لم يقم بحفظ التراك بشكل صحيح'));
+      alert('تم حفظ التراك على Firebase بنجاح! 🚀');
+    } catch (err) {
+      alert('حدث خطأ أثناء الحفظ في Firebase');
+    }
   };
   
-  const handleDeleteTrack = (id) => {
+  const handleDeleteTrack = async (id) => {
     if (!confirm("عايز تمسح التراك ده؟")) return;
-    fetch(`${API_BASE_URL}/api/tracks/${id}`, { method: 'DELETE' })
-    .then(res => {
-      if (res.ok) {
-        setTracksData(tracksData.filter(t => t._id !== id));
-        alert('تم مسح التراك!');
-      }
-    })
-    .catch(() => alert('حدثت مشكلة أثناء الحذف'));
+    try {
+      await deleteDoc(doc(db, 'tracks', id));
+      setTracksData(tracksData.filter(t => t._id !== id));
+      alert('تم مسح التراك بنجاح!');
+    } catch (err) {
+      alert('حدثت مشكلة أثناء الحذف من Firebase');
+    }
   };
 
 
-  const handleAddVideo = (e) => {
+  const handleAddVideo = async (e) => {
     e.preventDefault();
-    
     let rawUrl = newVideoId.trim();
     let extractedId = rawUrl;
 
@@ -217,40 +229,45 @@ function App() {
       extractedId = rawUrl.split('v=')[1].split('&')[0].split('?')[0];
     } else if (rawUrl.includes('youtu.be/')) {
       extractedId = rawUrl.split('youtu.be/')[1].split('?')[0];
+    } else if (rawUrl.includes('embed/')) {
+      extractedId = rawUrl.split('embed/')[1].split('?')[0];
+    } else if (rawUrl.includes('shorts/')) {
+      extractedId = rawUrl.split('shorts/')[1].split('?')[0];
     }
 
-    fetch(`${API_BASE_URL}/api/videos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        title: newVideoTitle, 
-        youtubeId: extractedId
-      }) 
-    })
-    .then(async res => {
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'خطأ من السيرفر');
-      return data;
-    })
-    .then(data => {
-      setVideosData(prev => [...prev, data]);
+    if (!extractedId || extractedId.length !== 11) {
+      return alert("لم نتمكن من التعرف على كود الفيديو، تأكد من رابط اليوتيوب");
+    }
+
+    if (!newVideoTitle) {
+      return alert("برجاء إدخال عنوان للفيديو");
+    }
+
+    try {
+      const thumbnail = `https://img.youtube.com/vi/${extractedId}/hqdefault.jpg`;
+      const videoData = { title: newVideoTitle, youtubeId: extractedId, thumbnail };
+      
+      const docRef = await addDoc(collection(db, 'videos'), videoData);
+      
+      setVideosData(prev => [...prev, { _id: docRef.id, ...videoData }]);
       setNewVideoTitle('');
       setNewVideoId('');
-      alert('تم حفظ الفيديو بنجاح! 🎉');
-    })
-    .catch(err => alert(`سبب الرفض: ${err.message}`));
+      alert('تم حفظ الفيديو على Firebase بنجاح! 🎉');
+    } catch (err) {
+      alert('حدث خطأ أثناء حفظ الفيديو في Firebase');
+    }
   };
 
-  const handleDeleteVideo = (id) => {
+  
+  const handleDeleteVideo = async (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
-    fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
-    .then(res => {
-      if (res.ok) {
-        setVideosData(videosData.filter(v => v._id !== id));
-        alert('تم مسح الفيديو!');
-      }
-    })
-    .catch(() => alert('حدثت مشكلة أثناء الحذف'));
+    try {
+      await deleteDoc(doc(db, 'videos', id));
+      setVideosData(videosData.filter(v => v._id !== id));
+      alert('تم مسح الفيديو من قاعدة البيانات!');
+    } catch (err) {
+      alert('حدثت مشكلة أثناء حذف الفيديو');
+    }
   };
 
   const getYoutubeId = (video) => {
@@ -281,7 +298,7 @@ function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px', borderBottom: '1px solid #27272a', paddingBottom: '20px' }}>
           <div>
             <h1 style={{ fontSize: '32px', fontWeight: '950' }}>M.BIKO <span className="text-neon">DASHBOARD</span></h1>
-            <p style={{ color: '#71717a', marginTop: '5px' }}>مرحباً بك يا فنان - البيانات تحفظ الآن في قاعدة البيانات سحابياً 🌐</p>
+            <p style={{ color: '#71717a', marginTop: '5px' }}>مرحباً بك يا فنان - البيانات تُحفظ وتُدار سحابياً عبر Firebase Firestore 🔥</p>
           </div>
           <button className="btn-dark" style={{ borderColor: '#ff3366', color: '#ff3366' }} onClick={() => { localStorage.removeItem('adminToken'); setEmailInput(''); setPasswordInput(''); window.history.pushState({}, '', '/'); setView('site'); }}>تسجيل الخروج 🚪</button>
         </div>
@@ -305,7 +322,6 @@ function App() {
           <div style={{ background: '#111113', padding: '30px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', color: '#00ffcc' }}>🎬 إدارة كليبات اليوتيوب</h2>
             <form onSubmit={handleAddVideo} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
-              
               <input type="text" placeholder="عنوان الكليب الجديد" value={newVideoTitle} autoComplete="off" onChange={e => setNewVideoTitle(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <input type="text" placeholder="رابط فيديو اليوتيوب الكامل" value={newVideoId} autoComplete="off" onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <button type="submit" className="btn-filled" style={{ width: '100%', background: '#7000ff', color: '#fff' }}>+ إضافة الفيديو للموقع</button>
@@ -410,7 +426,6 @@ function App() {
       <section className="videos-section scroll-reveal" id="videos">
         <h2 className="section-title">VIDEO <span className="text-neon">VAULT</span></h2>
         <div className="videos-grid">
-          
           {Array.isArray(videosData) && videosData.length > 0 ? (
             videosData.map((video) => {
               if (!video) return null;
