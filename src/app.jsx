@@ -205,20 +205,20 @@ function App() {
     let rawUrl = newVideoId.trim();
     let extractedId = rawUrl;
 
-    // 1. لو كاتب رابط كامل فيه watch?v=
+    
     if (rawUrl.includes('watch?v=')) {
       extractedId = rawUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
     } 
-    // 2. لو كاتب رابط قصير بتاع الموبايل youtu.be/
+    
     else if (rawUrl.includes('youtu.be/')) {
       extractedId = rawUrl.split('youtu.be/')[1].split('?')[0];
     }
-    // 3. لو كاتب رابط embed
+    
     else if (rawUrl.includes('embed/')) {
       extractedId = rawUrl.split('embed/')[1].split('?')[0];
     }
 
-    // الحركة الصايعة: بنصنع الرابط الكلاسيكي النظيف اللي الباكيند بيموت فيه
+    
     const cleanYoutubeUrl = `https://www.youtube.com/watch?v=${extractedId}`;
 
     fetch(`${API_BASE_URL}/api/videos`, {
@@ -226,12 +226,16 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         title: newVideoTitle, 
-        videoId: cleanYoutubeUrl // بنبعت الرابط الكلاسيكي النظيف عشان الـ Regex يشتغل صح
+        videoId: cleanYoutubeUrl 
       }) 
     })
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.json();
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+       
+        throw new Error(data.error || data.message || 'خطأ مجهول من السيرفر');
+      }
+      return data;
     })
     .then(data => {
       setVideosData([...videosData, data]); 
@@ -239,9 +243,10 @@ function App() {
       setNewVideoId('');
       alert('تم حفظ الفيديو بنجاح! 🎉');
     })
-    .catch(() => alert('السيرفر رفض الحفظ، تأكد من أن الرابط صحيح.'));
-  };
-
+    .catch((err) => {
+      
+      alert(`سبب الرفض الحقيقي: ${err.message}`);
+    });
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
     fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
