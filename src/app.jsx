@@ -6,7 +6,7 @@ function App() {
   const YOUTUBE_URL = "https://www.youtube.com/@mohamedbiko11";
   const INSTAGRAM_URL = "https://www.instagram.com/mohamed_biko1";
   
-  const API_BASE_URL = "https://bikoofficial-154277842591.europe-west1.run.app"; 
+  const API_BASE_URL = "https://bikobackend-154277842591.europe-west1.run.app"; 
 
   const [view, setView] = useState('site');
   const [tracksData, setTracksData] = useState([]);
@@ -30,7 +30,7 @@ function App() {
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
   const [isHovered, setIsHovered] = useState(false);
 
-  // 1️⃣ تصليح الأقواس وتأمين جلب البيانات هنا
+ 
   useEffect(() => {
     if (window.location.pathname === '/admin' || window.location.pathname === '/login') {
       setView('login');
@@ -206,7 +206,7 @@ function App() {
     .catch(() => alert('حدثت مشكلة أثناء الحذف'));
   };
 
-  // 2️⃣ حذف حرف الـ x الطاير وتأمين إرسال المتغيرات للباكيند بشكل صحيح
+
   const handleAddVideo = (e) => {
     e.preventDefault();
     
@@ -305,7 +305,7 @@ function App() {
           <div style={{ background: '#111113', padding: '30px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', color: '#00ffcc' }}>🎬 إدارة كليبات اليوتيوب</h2>
             <form onSubmit={handleAddVideo} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
-              {/* 3️⃣ إضافة autoComplete="off" لمنع حشو الباسورد التلقائي من المتصفح */}
+              
               <input type="text" placeholder="عنوان الكليب الجديد" value={newVideoTitle} autoComplete="off" onChange={e => setNewVideoTitle(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <input type="text" placeholder="رابط فيديو اليوتيوب الكامل" value={newVideoId} autoComplete="off" onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <button type="submit" className="btn-filled" style={{ width: '100%', background: '#7000ff', color: '#fff' }}>+ إضافة الفيديو للموقع</button>
@@ -410,7 +410,7 @@ function App() {
       <section className="videos-section scroll-reveal" id="videos">
         <h2 className="section-title">VIDEO <span className="text-neon">VAULT</span></h2>
         <div className="videos-grid">
-          {/* 4️⃣ تأمين الـ map بشكل كامل ضد الـ Crash والبيانات الناقصة */}
+          
           {Array.isArray(videosData) && videosData.length > 0 ? (
             videosData.map((video) => {
               if (!video) return null;
