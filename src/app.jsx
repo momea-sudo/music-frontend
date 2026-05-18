@@ -205,50 +205,32 @@ function App() {
     let rawUrl = newVideoId.trim();
     let extractedId = rawUrl;
 
-    if (rawUrl.includes('watch?v=')) {
-      extractedId = rawUrl.split('watch?v=')[1].split('&')[0].split('?')[0];
+    if (rawUrl.includes('v=')) {
+      extractedId = rawUrl.split('v=')[1].split('&')[0].split('?')[0];
     } else if (rawUrl.includes('youtu.be/')) {
       extractedId = rawUrl.split('youtu.be/')[1].split('?')[0];
-    } else if (rawUrl.includes('embed/')) {
-      extractedId = rawUrl.split('embed/')[1].split('?')[0];
     }
-
-    const cleanYoutubeUrl = `https://www.youtube.com/watch?v=${extractedId}`;
 
     fetch(`${API_BASE_URL}/api/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         title: newVideoTitle, 
-        videoId: cleanYoutubeUrl 
+        youtubeId: extractedId // 👈 بنبعته باسم youtubeId صريح للباكيند
       }) 
     })
     .then(async res => {
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'خطأ من السيرفر');
-      }
+      if (!res.ok) throw new Error(data.error || 'خطأ من السيرفر');
       return data;
     })
     .then(data => {
-      
-      if (data && data.title) {
-        setVideosData(prevVideos => [...prevVideos, data]);
-        alert('تم حفظ الفيديو بنجاح! 🎉');
-      } else {
-        
-        fetch(`${API_BASE_URL}/api/videos`)
-          .then(res => res.json())
-          .then(refreshData => setVideosData(refreshData));
-        alert('تم الحفظ، وجاري تحديث القائمة تلقائياً! 🔄');
-      }
-      
+      setVideosData(prev => [...prev, data]);
       setNewVideoTitle('');
       setNewVideoId('');
+      alert('تم حفظ الفيديو بنجاح! 🎉');
     })
-    .catch((err) => {
-      alert(`سبب الرفض: ${err.message}`);
-    });
+    .catch(err => alert(`سبب الرفض: ${err.message}`));
   };
 
   const handleDeleteVideo = (id) => {
