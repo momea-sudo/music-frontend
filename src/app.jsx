@@ -231,7 +231,7 @@ function App() {
       alert('تم حفظ الفيديو بنجاح! 🎉');
     })
     .catch(err => alert(`سبب الرفض: ${err.message}`));
-  };
+  };x
 
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
