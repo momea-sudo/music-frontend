@@ -226,16 +226,12 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         title: newVideoTitle, 
-        videoId: cleanYoutubeUrl 
+        videoId: cleanYoutubeUrl // بنبعت الرابط الكلاسيكي النظيف عشان الـ Regex يشتغل صح
       }) 
     })
-    .then(async res => {
-      const data = await res.json();
-      if (!res.ok) {
-       
-        throw new Error(data.error || data.message || 'خطأ مجهول من السيرفر');
-      }
-      return data;
+    .then(res => {
+      if (!res.ok) throw new Error();
+      return res.json();
     })
     .then(data => {
       setVideosData([...videosData, data]); 
@@ -243,10 +239,9 @@ function App() {
       setNewVideoId('');
       alert('تم حفظ الفيديو بنجاح! 🎉');
     })
-    .catch((err) => {
-      
-      alert(`سبب الرفض الحقيقي: ${err.message}`);
-    });
+    .catch(() => alert('السيرفر رفض الحفظ، تأكد من أن الرابط صحيح.'));
+  };
+
   const handleDeleteVideo = (id) => {
     if (!confirm("عايز تمسح الفيديو ده؟")) return;
     fetch(`${API_BASE_URL}/api/videos/${id}`, { method: 'DELETE' })
