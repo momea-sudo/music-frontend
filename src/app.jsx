@@ -216,7 +216,7 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         title: newVideoTitle, 
-        youtubeId: extractedId // 👈 بنبعته باسم youtubeId صريح للباكيند
+        youtubeId: extractedId
       }) 
     })
     .then(async res => {
@@ -297,8 +297,8 @@ function App() {
           <div style={{ background: '#111113', padding: '30px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', color: '#00ffcc' }}>🎬 إدارة كليبات اليوتيوب</h2>
             <form onSubmit={handleAddVideo} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '30px' }}>
-              <input type="text" placeholder="عنوان الكليب الجديد" value={newVideoTitle} onChange={e => setNewVideoTitle(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
-              <input type="text" placeholder="رابط فيديو اليوتيوب الكامل" value={newVideoId} onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
+              <input type="text" placeholder="عنوان الكليب الجديد" value={newVideoTitle} autoComplete="off" onChange={e => setNewVideoTitle(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
+              <input type="text" placeholder="رابط فيديو اليوتيوب الكامل" value={newVideoId} autoComplete="off" onChange={e => setNewVideoId(e.target.value)} style={{ padding: '12px', background: '#050507', border: '1px solid #27272a', borderRadius: '6px', color: '#fff' }} />
               <button type="submit" className="btn-filled" style={{ width: '100%', background: '#7000ff', color: '#fff' }}>+ إضافة الفيديو للموقع</button>
             </form>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
